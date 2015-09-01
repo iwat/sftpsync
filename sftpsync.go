@@ -49,7 +49,6 @@ func (m SyncManager) Run() error {
 				} else {
 					pwd, err := seckeychain.FindInternetPassword(host, "", m.SSHClientConfig.User, "", uint16(nPort), seckeychain.ProtocolTypeSSH, seckeychain.AuthenticationTypeAny)
 					if err != nil {
-						println("ssh://" + comps.Host)
 						log.WRN.Println("could not access keychain:", err)
 					} else {
 						m.SSHClientConfig.Auth = append(m.SSHClientConfig.Auth, ssh.Password(pwd))
