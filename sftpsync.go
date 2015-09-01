@@ -1,11 +1,14 @@
 package sftpsync
 
 import (
+	"net"
 	"net/url"
+	"strconv"
 
 	"golang.org/x/crypto/ssh"
 
 	"github.com/iwat/go-log"
+	"github.com/iwat/go-seckeychain"
 	"github.com/iwat/sftpsync/internal"
 )
 
@@ -35,6 +38,24 @@ func (m SyncManager) Run() error {
 
 		if pwd, ok := comps.User.Password(); ok {
 			m.SSHClientConfig.Auth = append(m.SSHClientConfig.Auth, ssh.Password(pwd))
+		} else {
+			host, port, err := net.SplitHostPort(comps.Host)
+			if err != nil {
+				log.WRN.Println("could not extract host,port:", err)
+			} else {
+				nPort, err := strconv.Atoi(port)
+				if err != nil {
+					log.WRN.Println("could not resolve port:", err)
+				} else {
+					pwd, err := seckeychain.FindInternetPassword(host, "", m.SSHClientConfig.User, "", uint16(nPort), seckeychain.ProtocolTypeSSH, seckeychain.AuthenticationTypeAny)
+					if err != nil {
+						println("ssh://" + comps.Host)
+						log.WRN.Println("could not access keychain:", err)
+					} else {
+						m.SSHClientConfig.Auth = append(m.SSHClientConfig.Auth, ssh.Password(pwd))
+					}
+				}
+			}
 		}
 	}
 
