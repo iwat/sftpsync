@@ -2,6 +2,7 @@ package internal
 
 import (
 	"path/filepath"
+	"regexp"
 	"sort"
 
 	"github.com/kr/fs"
@@ -9,7 +10,7 @@ import (
 	"github.com/iwat/go-log"
 )
 
-func CompareTree(basepath string, remoteMap map[string]file, skipFiles, skipDirs []string) (rmdirs []file, rms []file, mkdirs []file, puts []file) {
+func CompareTree(basepath string, remoteMap map[string]file, skipFiles, skipDirs []*regexp.Regexp) (rmdirs []file, rms []file, mkdirs []file, puts []file) {
 	walker := fs.Walk(basepath)
 
 	for walker.Step() {
@@ -32,7 +33,7 @@ func CompareTree(basepath string, remoteMap map[string]file, skipFiles, skipDirs
 		if walker.Stat().IsDir() {
 			matched := false
 			for _, skipDir := range skipDirs {
-				if name == skipDir {
+				if skipDir.MatchString(name) {
 					walker.SkipDir()
 					matched = true
 					break
@@ -44,7 +45,7 @@ func CompareTree(basepath string, remoteMap map[string]file, skipFiles, skipDirs
 		} else {
 			matched := false
 			for _, skipFile := range skipFiles {
-				if name == skipFile {
+				if skipFile.MatchString(name) {
 					matched = true
 					break
 				}

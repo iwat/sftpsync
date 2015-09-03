@@ -4,30 +4,31 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
 
 	"github.com/iwat/go-log"
 	"github.com/iwat/sftpsync"
 )
 
-var skipFiles = []string{
-	".buildpath",
-	".DS_Store",
-	".git",
-	".gitignore",
-	".gitmodules",
-	".project",
-}
-
-var skipDirs = []string{
-	".git",
-	".settings",
-}
+var skipFiles = []*regexp.Regexp{}
+var skipDirs = []*regexp.Regexp{}
 
 var flagDryRun = false
 var flagVerbose = false
 var flagVeryVerbose = false
 
 func init() {
+	skipFiles = append(skipFiles, regexp.MustCompile(`^\.buildpath$`))
+	skipFiles = append(skipFiles, regexp.MustCompile(`^\.DS_Store$`))
+	skipFiles = append(skipFiles, regexp.MustCompile(`^\.git$`))
+	skipFiles = append(skipFiles, regexp.MustCompile(`^\.gitignore$`))
+	skipFiles = append(skipFiles, regexp.MustCompile(`^\.gitmodules$`))
+	skipFiles = append(skipFiles, regexp.MustCompile(`^\.project$`))
+	skipFiles = append(skipFiles, regexp.MustCompile(`^myapp_.*$`))
+
+	skipDirs = append(skipDirs, regexp.MustCompile(`^\.git$`))
+	skipDirs = append(skipDirs, regexp.MustCompile(`^\.settings$`))
+
 	flag.BoolVar(&flagDryRun, "dryrun", false, "Dry-run")
 	flag.BoolVar(&flagVerbose, "v", false, "Verbose")
 	flag.BoolVar(&flagVeryVerbose, "vv", false, "Very verbose")

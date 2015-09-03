@@ -3,6 +3,7 @@ package sftpsync
 import (
 	"net"
 	"net/url"
+	"regexp"
 	"strconv"
 
 	"golang.org/x/crypto/ssh"
@@ -19,8 +20,8 @@ type SyncManager struct {
 
 	SSHClientConfig *ssh.ClientConfig
 
-	SkipFiles []string
-	SkipDirs  []string
+	SkipFiles []*regexp.Regexp
+	SkipDirs  []*regexp.Regexp
 }
 
 func (m SyncManager) Run() error {
