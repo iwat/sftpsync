@@ -48,7 +48,7 @@ func BuildRemoteFileList(walker *fs.Walker, basepath string) map[string]file {
 		fmt.Print(".")
 		i++
 
-		if i > 80 {
+		if i >= 80 {
 			i = 0
 			fmt.Println()
 		}
