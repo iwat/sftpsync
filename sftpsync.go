@@ -14,6 +14,7 @@ import (
 )
 
 type SyncManager struct {
+	Append bool
 	DryRun bool
 	Local  string
 	Remote string

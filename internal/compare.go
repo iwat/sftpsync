@@ -66,7 +66,12 @@ func CompareTree(basepath string, remoteMap map[string]file, skipFiles, skipDirs
 
 		if remote, ok := remoteMap[mine.relPath]; ok {
 			if !mine.mode.IsDir() && !remote.mode.IsDir() {
-				if mine.size != remote.size || mine.mod.After(remote.mod) {
+				if mine.mod.After(remote.mod) {
+					puts = append(puts, mine)
+				} else if mine.size != remote.size {
+					if remote.size < mine.size {
+						mine.offset = remote.size
+					}
 					puts = append(puts, mine)
 				}
 			} else if !mine.mode.IsDir() && remote.mode.IsDir() {

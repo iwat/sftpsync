@@ -13,9 +13,12 @@ import (
 var skipFiles = []*regexp.Regexp{}
 var skipDirs = []*regexp.Regexp{}
 
-var flagDryRun = false
-var flagVerbose = false
-var flagVeryVerbose = false
+var (
+	flagAppend      = false
+	flagDryRun      = false
+	flagVerbose     = false
+	flagVeryVerbose = false
+)
 
 func init() {
 	skipFiles = append(skipFiles, regexp.MustCompile(`^\.buildpath$`))
@@ -29,6 +32,7 @@ func init() {
 	skipDirs = append(skipDirs, regexp.MustCompile(`^\.git$`))
 	skipDirs = append(skipDirs, regexp.MustCompile(`^\.settings$`))
 
+	flag.BoolVar(&flagAppend, "append", false, "Append instead of overwrite")
 	flag.BoolVar(&flagDryRun, "dryrun", false, "Dry-run")
 	flag.BoolVar(&flagVerbose, "v", false, "Verbose")
 	flag.BoolVar(&flagVeryVerbose, "vv", false, "Very verbose")
@@ -54,6 +58,7 @@ func main() {
 		Remote:    flag.Arg(0),
 		SkipFiles: skipFiles,
 		SkipDirs:  skipDirs,
+		Append:    flagAppend,
 		DryRun:    flagDryRun,
 	}
 	err := m.Run()

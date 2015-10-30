@@ -13,6 +13,7 @@ type file struct {
 	mod     time.Time
 	path    string
 	relPath string
+	offset  int64
 }
 
 func (f file) String() string {
