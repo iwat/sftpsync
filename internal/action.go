@@ -12,14 +12,14 @@ import (
 func ProcessDelete(client *sftp.Client, dc <-chan file, dryRun bool, done chan<- bool) {
 	for d := range dc {
 		if dryRun {
-			log.NFO.Println("!DEL", d)
+			log.Infoln("!DEL", d)
 			continue
 		}
 
-		log.NFO.Println("DEL", d)
+		log.Infoln("DEL", d)
 		err := client.Remove(d.path)
 		if err != nil {
-			log.WRN.Print("DEL ", d, ": ", err)
+			log.Warn("DEL ", d, ": ", err)
 			continue
 		}
 	}
@@ -41,14 +41,14 @@ func ProcessPut(client *sftp.Client, basepath string, pc <-chan file, dryRun boo
 
 func putDir(p file, client *sftp.Client, basepath string, dryRun bool) {
 	if dryRun {
-		log.NFO.Print("!MKDIR ", p)
+		log.Info("!MKDIR ", p)
 		return
 	}
 
-	log.NFO.Print("MKDIR ", p)
+	log.Info("MKDIR ", p)
 	err := client.Mkdir(basepath + "/" + p.relPath)
 	if err != nil {
-		log.WRN.Print("MKDIR ", p, ": ", err)
+		log.Warn("MKDIR ", p, ": ", err)
 		return
 	}
 }
@@ -56,9 +56,9 @@ func putDir(p file, client *sftp.Client, basepath string, dryRun bool) {
 func putFile(p file, client *sftp.Client, basepath string, dryRun bool) {
 	if dryRun {
 		if p.offset > 0 {
-			log.NFO.Print("!APPEND", p)
+			log.Info("!APPEND", p)
 		} else {
-			log.NFO.Print("!PUT ", p)
+			log.Info("!PUT ", p)
 		}
 		return
 	}
@@ -66,14 +66,14 @@ func putFile(p file, client *sftp.Client, basepath string, dryRun bool) {
 	var remote *sftp.File
 	var err error
 	if p.offset > 0 {
-		log.NFO.Println("APPEND", p)
-		remote, err = client.OpenFile(basepath+"/"+p.relPath, os.O_APPEND)
+		log.Infoln("APPEND", p)
+		remote, err = client.OpenFile(basepath+"/"+p.relPath, os.O_RDWR|os.O_APPEND)
 	} else {
-		log.NFO.Println("PUT", p)
+		log.Infoln("PUT", p)
 		remote, err = client.Create(basepath + "/" + p.relPath)
 	}
 	if err != nil {
-		log.WRN.Print("PUT ", p, ": ", err)
+		log.Warn("PUT ", p, ": ", err)
 		return
 	}
 
@@ -81,19 +81,23 @@ func putFile(p file, client *sftp.Client, basepath string, dryRun bool) {
 
 	local, err := os.Open(p.path)
 	if err != nil {
-		log.WRN.Print("PUT ", p, ": ", err)
+		log.Warn("PUT ", p, ": ", err)
 		return
 	}
 
 	defer local.Close()
 
 	if p.offset > 0 {
-		local.Seek(p.offset, os.SEEK_SET)
+		_, err := local.Seek(p.offset, os.SEEK_SET)
+		if err != nil {
+			log.Warnln("Seek error:", err)
+			return
+		}
 	}
 
 	_, err = io.Copy(remote, local)
 	if err != nil {
-		log.WRN.Print("PUT ", p, ": ", err)
+		log.Warn("PUT ", p, ": ", err)
 		return
 	}
 }
