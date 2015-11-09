@@ -71,7 +71,7 @@ func (m SyncManager) Run() error {
 
 	done := make(chan bool)
 
-	rmdirs, rms, mkdirs, puts := internal.CompareTree(m.Local, remoteMap, m.SkipFiles, m.SkipDirs)
+	rmdirs, rms, mkdirs, puts := internal.CompareTree(m.Local, remoteMap, m.SkipFiles, m.SkipDirs, m.Append)
 	rmdirc := internal.FileSliceToChan(rmdirs)
 	rmc := internal.FileSliceToChan(rms)
 	mkdirc := internal.FileSliceToChan(mkdirs)

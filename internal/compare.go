@@ -10,7 +10,7 @@ import (
 	"github.com/iwat/go-log"
 )
 
-func CompareTree(basepath string, remoteMap map[string]file, skipFiles, skipDirs []*regexp.Regexp) (rmdirs []file, rms []file, mkdirs []file, puts []file) {
+func CompareTree(basepath string, remoteMap map[string]file, skipFiles, skipDirs []*regexp.Regexp, appendFile bool) (rmdirs []file, rms []file, mkdirs []file, puts []file) {
 	walker := fs.Walk(basepath)
 
 	for walker.Step() {
@@ -69,7 +69,7 @@ func CompareTree(basepath string, remoteMap map[string]file, skipFiles, skipDirs
 				if mine.mod.After(remote.mod) {
 					puts = append(puts, mine)
 				} else if mine.size != remote.size {
-					if remote.size < mine.size {
+					if remote.size < mine.size && appendFile {
 						mine.offset = remote.size
 					}
 					puts = append(puts, mine)
