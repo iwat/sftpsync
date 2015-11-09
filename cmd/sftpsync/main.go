@@ -6,12 +6,15 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/iwat/go-log"
 	"github.com/iwat/sftpsync"
+	"gopkg.in/inconshreveable/log15.v2"
+	"gopkg.in/inconshreveable/log15.v2/ext"
 )
 
 var skipFiles = []*regexp.Regexp{}
 var skipDirs = []*regexp.Regexp{}
+
+var log log15.Logger
 
 var (
 	flagAppend      = false
@@ -21,6 +24,8 @@ var (
 )
 
 func init() {
+	log = log15.New("main")
+
 	skipFiles = append(skipFiles, regexp.MustCompile(`^\.buildpath$`))
 	skipFiles = append(skipFiles, regexp.MustCompile(`^\.DS_Store$`))
 	skipFiles = append(skipFiles, regexp.MustCompile(`^\.git$`))
@@ -46,7 +51,13 @@ func main() {
 		os.Exit(2)
 	}
 
-	log.Init(flagVerbose, flagVeryVerbose)
+	handler := ext.FatalHandler(log15.CallerFileHandler(log15.StderrHandler))
+	if flagVeryVerbose {
+		handler = log15.LvlFilterHandler(log15.LvlDebug, handler)
+	} else if flagVerbose {
+		handler = log15.LvlFilterHandler(log15.LvlInfo, handler)
+	}
+	log15.Root().SetHandler(handler)
 
 	local := "."
 	if flag.NArg() == 2 {
@@ -63,6 +74,6 @@ func main() {
 	}
 	err := m.Run()
 	if err != nil {
-		log.ERR.Fatal(err)
+		log.Crit("run error", "err", err)
 	}
 }

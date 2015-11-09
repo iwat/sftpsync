@@ -8,9 +8,9 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"github.com/iwat/go-log"
 	"github.com/iwat/go-seckeychain"
 	"github.com/iwat/sftpsync/internal"
+	"gopkg.in/inconshreveable/log15.v2"
 )
 
 type SyncManager struct {
@@ -25,6 +25,12 @@ type SyncManager struct {
 	SkipDirs  []*regexp.Regexp
 }
 
+var log log15.Logger
+
+func init() {
+	log = log15.New("module", "sftpsync")
+}
+
 func (m SyncManager) Run() error {
 	if m.SSHClientConfig == nil {
 		m.SSHClientConfig = &ssh.ClientConfig{}
@@ -32,7 +38,7 @@ func (m SyncManager) Run() error {
 
 	comps, err := url.Parse(m.Remote)
 	if err != nil {
-		log.ERR.Fatalln("could not parse remote url:", err)
+		log.Crit("could not parse remote url", "err", err)
 	}
 
 	if comps.User != nil {
@@ -43,15 +49,15 @@ func (m SyncManager) Run() error {
 		} else {
 			host, port, err := net.SplitHostPort(comps.Host)
 			if err != nil {
-				log.WRN.Println("could not extract host,port:", err)
+				log.Warn("could not extract host,port", "err", err)
 			} else {
 				nPort, err := strconv.Atoi(port)
 				if err != nil {
-					log.WRN.Println("could not resolve port:", err)
+					log.Warn("could not resolve port", "err", err)
 				} else {
 					pwd, err := seckeychain.FindInternetPassword(host, "", m.SSHClientConfig.User, "", uint16(nPort), seckeychain.ProtocolTypeSSH, seckeychain.AuthenticationTypeAny)
 					if err != nil {
-						log.WRN.Println("could not access keychain:", err)
+						log.Warn("could not access keychain", "err", err)
 					} else {
 						m.SSHClientConfig.Auth = append(m.SSHClientConfig.Auth, ssh.Password(pwd))
 					}
@@ -60,13 +66,13 @@ func (m SyncManager) Run() error {
 		}
 	}
 
-	log.NFO.Println("Dialing", comps)
+	log.Info("Dialing", "uri", comps)
 	client, err := internal.NewSFTPClient(comps.Host, m.SSHClientConfig)
 	if err != nil {
-		log.ERR.Fatalln("could not connect sftp:", err)
+		log.Crit("could not connect sftp", "err", err)
 	}
 
-	log.NFO.Println("Listing files")
+	log.Info("Listing files")
 	remoteMap := internal.BuildRemoteFileList(client.Walk(comps.Path), comps.Path)
 
 	done := make(chan bool)
