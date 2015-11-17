@@ -28,7 +28,7 @@ type SyncManager struct {
 var log log15.Logger
 
 func init() {
-	log = log15.New("module", "sftpsync")
+	log = log15.New("package", "sftpsync")
 }
 
 func (m SyncManager) Run() error {
@@ -39,6 +39,7 @@ func (m SyncManager) Run() error {
 	comps, err := url.Parse(m.Remote)
 	if err != nil {
 		log.Crit("could not parse remote url", "err", err)
+		return err
 	}
 
 	if comps.User != nil {
@@ -70,6 +71,7 @@ func (m SyncManager) Run() error {
 	client, err := internal.NewSFTPClient(comps.Host, m.SSHClientConfig)
 	if err != nil {
 		log.Crit("could not connect sftp", "err", err)
+		return err
 	}
 
 	log.Info("Listing files")

@@ -6,8 +6,6 @@ import (
 	"sort"
 
 	"github.com/kr/fs"
-
-	"github.com/iwat/go-log"
 )
 
 func CompareTree(basepath string, remoteMap map[string]file, skipFiles, skipDirs []*regexp.Regexp, appendFile bool) (rmdirs []file, rms []file, mkdirs []file, puts []file) {
@@ -15,13 +13,13 @@ func CompareTree(basepath string, remoteMap map[string]file, skipFiles, skipDirs
 
 	for walker.Step() {
 		if err := walker.Err(); err != nil {
-			log.WRN.Println("walker error:", err)
+			log.Warn("walker error", "err", err)
 			continue
 		}
 
 		rel, err := filepath.Rel(basepath, walker.Path())
 		if err != nil {
-			log.WRN.Println("rel error:", err)
+			log.Warn("rel error", "err", err)
 			continue
 		}
 

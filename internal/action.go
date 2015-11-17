@@ -5,21 +5,19 @@ import (
 	"os"
 
 	"github.com/pkg/sftp"
-
-	"github.com/iwat/go-log"
 )
 
 func ProcessDelete(client *sftp.Client, dc <-chan file, dryRun bool, done chan<- bool) {
 	for d := range dc {
 		if dryRun {
-			log.Infoln("!DEL", d)
+			log.Info("!DEL", "path", d.relPath)
 			continue
 		}
 
-		log.Infoln("DEL", d)
+		log.Info("DEL", "path", d.relPath)
 		err := client.Remove(d.path)
 		if err != nil {
-			log.Warn("DEL ", d, ": ", err)
+			log.Warn("DEL", "path", d.relPath, "err", err)
 			continue
 		}
 	}
@@ -41,14 +39,14 @@ func ProcessPut(client *sftp.Client, basepath string, pc <-chan file, dryRun boo
 
 func putDir(p file, client *sftp.Client, basepath string, dryRun bool) {
 	if dryRun {
-		log.Info("!MKDIR ", p)
+		log.Info("!MKDIR", "path", p.relPath)
 		return
 	}
 
-	log.Info("MKDIR ", p)
+	log.Info("MKDIR", "path", p.relPath)
 	err := client.Mkdir(basepath + "/" + p.relPath)
 	if err != nil {
-		log.Warn("MKDIR ", p, ": ", err)
+		log.Warn("MKDIR", "path", p.relPath, "err", err)
 		return
 	}
 }
@@ -56,9 +54,9 @@ func putDir(p file, client *sftp.Client, basepath string, dryRun bool) {
 func putFile(p file, client *sftp.Client, basepath string, dryRun bool) {
 	if dryRun {
 		if p.offset > 0 {
-			log.Info("!APPEND", p)
+			log.Info("!APPEND", "path", p.relPath)
 		} else {
-			log.Info("!PUT ", p)
+			log.Info("!PUT", "path", p.relPath)
 		}
 		return
 	}
@@ -66,14 +64,14 @@ func putFile(p file, client *sftp.Client, basepath string, dryRun bool) {
 	var remote *sftp.File
 	var err error
 	if p.offset > 0 {
-		log.Infoln("APPEND", p)
+		log.Info("APPEND", "path", p.relPath)
 		remote, err = client.OpenFile(basepath+"/"+p.relPath, os.O_RDWR|os.O_APPEND)
 	} else {
-		log.Infoln("PUT", p)
+		log.Info("PUT", "path", p.relPath)
 		remote, err = client.Create(basepath + "/" + p.relPath)
 	}
 	if err != nil {
-		log.Warn("PUT ", p, ": ", err)
+		log.Warn("PUT", "path", p.relPath, "err", err)
 		return
 	}
 
@@ -81,7 +79,7 @@ func putFile(p file, client *sftp.Client, basepath string, dryRun bool) {
 
 	local, err := os.Open(p.path)
 	if err != nil {
-		log.Warn("PUT ", p, ": ", err)
+		log.Warn("PUT", "path", p.relPath, "err", err)
 		return
 	}
 
@@ -90,14 +88,14 @@ func putFile(p file, client *sftp.Client, basepath string, dryRun bool) {
 	if p.offset > 0 {
 		_, err := local.Seek(p.offset, os.SEEK_SET)
 		if err != nil {
-			log.Warnln("Seek error:", err)
+			log.Warn("Seek error", "err", err)
 			return
 		}
 	}
 
 	_, err = io.Copy(remote, local)
 	if err != nil {
-		log.Warn("PUT ", p, ": ", err)
+		log.Warn("PUT", "path", p.relPath, "err", err)
 		return
 	}
 }

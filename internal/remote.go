@@ -7,8 +7,6 @@ import (
 	"github.com/kr/fs"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
-
-	"github.com/iwat/go-log"
 )
 
 func NewSFTPClient(addr string, config *ssh.ClientConfig) (*sftp.Client, error) {
@@ -25,7 +23,8 @@ func BuildClients(host string, config *ssh.ClientConfig, num int) []*sftp.Client
 	for i := 0; i < 4; i++ {
 		client, err := NewSFTPClient(host, config)
 		if err != nil {
-			log.ERR.Fatalln("could not connect sftp:", err)
+			log.Crit("could not connect sftp", "err", err)
+			return nil
 		}
 
 		clients[i] = client
@@ -41,7 +40,7 @@ func BuildRemoteFileList(walker *fs.Walker, basepath string) map[string]file {
 
 	for walker.Step() {
 		if err := walker.Err(); err != nil {
-			log.WRN.Println("walker error:", err)
+			log.Warn("walker error", "err", err)
 			continue
 		}
 
@@ -55,7 +54,7 @@ func BuildRemoteFileList(walker *fs.Walker, basepath string) map[string]file {
 
 		rel, err := filepath.Rel(basepath, walker.Path())
 		if err != nil {
-			log.WRN.Println("could not resolve relative path:", walker.Path())
+			log.Warn("could not resolve relative path", "path", walker.Path())
 			continue
 		}
 

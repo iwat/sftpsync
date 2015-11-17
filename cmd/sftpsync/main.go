@@ -24,7 +24,7 @@ var (
 )
 
 func init() {
-	log = log15.New("main")
+	log = log15.New("package", "main")
 
 	skipFiles = append(skipFiles, regexp.MustCompile(`^\.buildpath$`))
 	skipFiles = append(skipFiles, regexp.MustCompile(`^\.DS_Store$`))
@@ -75,5 +75,6 @@ func main() {
 	err := m.Run()
 	if err != nil {
 		log.Crit("run error", "err", err)
+		return
 	}
 }
