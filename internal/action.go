@@ -10,7 +10,7 @@ import (
 func ProcessDelete(client *sftp.Client, dc <-chan file, dryRun bool, done chan<- bool) {
 	for d := range dc {
 		if dryRun {
-			log.Info("!DEL", "path", d.relPath)
+			log.Info("!DEL", "path", d.relPath, "size", d.size)
 			continue
 		}
 
@@ -54,9 +54,9 @@ func putDir(p file, client *sftp.Client, basepath string, dryRun bool) {
 func putFile(p file, client *sftp.Client, basepath string, dryRun bool) {
 	if dryRun {
 		if p.offset > 0 {
-			log.Info("!APPEND", "path", p.relPath)
+			log.Info("!APPEND", "path", p.relPath, "size", p.size)
 		} else {
-			log.Info("!PUT", "path", p.relPath)
+			log.Info("!PUT", "path", p.relPath, "size", p.size)
 		}
 		return
 	}
@@ -64,14 +64,14 @@ func putFile(p file, client *sftp.Client, basepath string, dryRun bool) {
 	var remote *sftp.File
 	var err error
 	if p.offset > 0 {
-		log.Info("APPEND", "path", p.relPath)
+		log.Info("APPEND", "path", p.relPath, "size", p.size)
 		remote, err = client.OpenFile(basepath+"/"+p.relPath, os.O_RDWR|os.O_APPEND)
 	} else {
-		log.Info("PUT", "path", p.relPath)
+		log.Info("PUT", "path", p.relPath, "size", p.size)
 		remote, err = client.Create(basepath + "/" + p.relPath)
 	}
 	if err != nil {
-		log.Warn("PUT", "path", p.relPath, "err", err)
+		log.Warn("PUT", "path", p.relPath, "size", p.size, "err", err)
 		return
 	}
 
@@ -79,7 +79,7 @@ func putFile(p file, client *sftp.Client, basepath string, dryRun bool) {
 
 	local, err := os.Open(p.path)
 	if err != nil {
-		log.Warn("PUT", "path", p.relPath, "err", err)
+		log.Warn("PUT", "path", p.relPath, "size", p.size, "err", err)
 		return
 	}
 
@@ -95,7 +95,7 @@ func putFile(p file, client *sftp.Client, basepath string, dryRun bool) {
 
 	_, err = io.Copy(remote, local)
 	if err != nil {
-		log.Warn("PUT", "path", p.relPath, "err", err)
+		log.Warn("PUT", "path", p.relPath, "size", p.size, "err", err)
 		return
 	}
 }
